@@ -1,7 +1,14 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-
+CITY_BONUSES = {
+    "lymhurst": 0.15,
+    "bridgewatch": 0.15,
+    "martlock": 0.15,
+    "fort_sterling": 0.15,
+    "thetford": 0.15,
+    "brecilien": 0.10
+}
 class Craft(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
