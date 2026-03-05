@@ -1,7 +1,8 @@
 # config.py
+import os
 
-# Встав свій токен сюди (тільки у тебе, нікому не показуй)
-DISCORD_TOKEN = "MTQ3NzIzODc1MDI2MTE1MzgyMw.GBPOMG.MdFI5GtyoRA21L7_p52jRLHc6BrHi-uhECPKKA"
+# Безпечний варіант: токен читається з Environment Variable
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")  
 
 PREMIUM_TAX = 0.04   # податок з преміумом
 NO_PREMIUM_TAX = 0.08
