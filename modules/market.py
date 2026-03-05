@@ -4,11 +4,9 @@ API = "https://west.albion-online-data.com/api/v2/stats/prices/"
 
 async def get_price(item):
 
-    url = API + item
-
     async with aiohttp.ClientSession() as session:
 
-        async with session.get(url) as r:
+        async with session.get(API + item) as r:
 
             data = await r.json()
 
