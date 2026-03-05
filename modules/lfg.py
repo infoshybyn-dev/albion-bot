@@ -1,19 +1,23 @@
 import disnake
 
 class LFGView(disnake.ui.View):
-    def __init__(self):
+    def __init__(self, location, organizer, roles_needed):
         super().__init__(timeout=None)
-        self.roles = {"Tank": [], "Healer": [], "Support": [], "Melee": [], "Ranged": []}
-        self.limits = {"Tank": 1, "Healer": 2, "Support": 1, "Melee": 3, "Ranged": 3}
+        # roles_needed = {"Танк": 1, "Хіл": 2, "Меле": 2, "Рейндж": 2, "Саппорт":1}
+        self.roles = {role: [] for role in roles_needed}
+        self.limits = roles_needed
+        self.location = location
+        self.organizer = organizer
 
     def build_embed(self):
-        embed = disnake.Embed(title="⚔ PvE Group", description="Click button to join", color=0xff0000)
+        embed = disnake.Embed(
+            title=f"⚔ Збір на {self.location}",
+            description=f"Організатор: {self.organizer.mention}\nНатисніть кнопку, щоб приєднатись",
+            color=0xff0000
+        )
         for role, players in self.roles.items():
             embed.add_field(name=role, value="\n".join(p.mention for p in players) if players else "-", inline=False)
         return embed
-
-    async def update_message(self, inter):
-        await inter.message.edit(embed=self.build_embed(), view=self)
 
     async def register(self, inter, role):
         user = inter.user
@@ -21,11 +25,11 @@ class LFGView(disnake.ui.View):
             if user in self.roles[r]:
                 self.roles[r].remove(user)
         if len(self.roles[role]) >= self.limits[role]:
-            await inter.response.send_message("❌ Slot full", ephemeral=True)
+            await inter.response.send_message("❌ Слот зайнятий", ephemeral=True)
             return
         self.roles[role].append(user)
         await inter.response.defer()
-        await self.update_message(inter)
+        await inter.message.edit(embed=self.build_embed(), view=self)
         await self.check_ready(inter)
 
     async def leave(self, inter):
@@ -34,34 +38,36 @@ class LFGView(disnake.ui.View):
             if user in self.roles[role]:
                 self.roles[role].remove(user)
         await inter.response.defer()
-        await self.update_message(inter)
+        await inter.message.edit(embed=self.build_embed(), view=self)
 
     async def check_ready(self, inter):
         total = sum(len(v) for v in self.roles.values())
-        if total >= 5:
+        total_needed = sum(self.limits.values())
+        if total >= total_needed:
             mentions = [user.mention for role in self.roles for user in self.roles[role]]
-            await inter.channel.send("⚔ **GROUP READY**\n" + " ".join(mentions))
+            await inter.channel.send("⚔ **ГРУПА ГОТОВА!**\n" + " ".join(mentions))
 
-    @disnake.ui.button(label="🛡 Tank", style=disnake.ButtonStyle.red)
+    # Кнопки для всіх ролей
+    @disnake.ui.button(label="🛡 Танк", style=disnake.ButtonStyle.red)
     async def tank(self, button, inter):
-        await self.register(inter, "Tank")
+        await self.register(inter, "Танк")
 
-    @disnake.ui.button(label="💚 Healer", style=disnake.ButtonStyle.green)
+    @disnake.ui.button(label="💚 Хіл", style=disnake.ButtonStyle.green)
     async def healer(self, button, inter):
-        await self.register(inter, "Healer")
+        await self.register(inter, "Хіл")
 
-    @disnake.ui.button(label="⚔ Melee", style=disnake.ButtonStyle.blurple)
+    @disnake.ui.button(label="⚔ Меле", style=disnake.ButtonStyle.blurple)
     async def melee(self, button, inter):
-        await self.register(inter, "Melee")
+        await self.register(inter, "Меле")
 
-    @disnake.ui.button(label="🏹 Ranged", style=disnake.ButtonStyle.blurple)
+    @disnake.ui.button(label="🏹 Рейндж", style=disnake.ButtonStyle.blurple)
     async def ranged(self, button, inter):
-        await self.register(inter, "Ranged")
+        await self.register(inter, "Рейндж")
 
-    @disnake.ui.button(label="⭐ Support", style=disnake.ButtonStyle.gray)
+    @disnake.ui.button(label="⭐ Саппорт", style=disnake.ButtonStyle.gray)
     async def support(self, button, inter):
-        await self.register(inter, "Support")
+        await self.register(inter, "Саппорт")
 
-    @disnake.ui.button(label="❌ Leave", style=disnake.ButtonStyle.secondary)
+    @disnake.ui.button(label="❌ Вийти", style=disnake.ButtonStyle.secondary)
     async def leave_btn(self, button, inter):
         await self.leave(inter)
