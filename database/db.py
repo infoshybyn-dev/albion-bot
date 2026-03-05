@@ -13,12 +13,4 @@ async def init_db():
         )
         """)
 
-        await db.execute("""
-        CREATE TABLE IF NOT EXISTS lfg(
-            message_id INTEGER,
-            role TEXT,
-            user INTEGER
-        )
-        """)
-
         await db.commit()
