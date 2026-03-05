@@ -1,7 +1,7 @@
 import disnake
 from disnake.ext import commands
 
-from config import TOKEN, RRA
+from config import DISCORD_TOKEN, RRA
 from modules.economy import craft_profit, refine_profit
 from modules.lfg import LFGView
 from database.db import init_db
@@ -88,4 +88,4 @@ async def refine(
     await inter.send(embed=embed)
 
 
-bot.run(TOKEN)
+bot.run(DISCORD_TOKEN)
