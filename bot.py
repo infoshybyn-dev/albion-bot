@@ -2,10 +2,9 @@ import disnake
 from disnake.ext import commands
 
 from config import TOKEN, RRA
-from database.db import init_db
+from modules.economy import craft_profit, refine_profit
 from modules.lfg import LFGView
-from modules.economy import craft_profit
-from modules.refine import refine_profit
+from database.db import init_db
 
 bot = commands.InteractionBot()
 
@@ -15,22 +14,21 @@ async def on_ready():
 
     await init_db()
 
-    print("Albion Guild Bot Ready")
+    print("Albion Bot Ready")
 
 
 @bot.slash_command(description="Create PvE group")
 async def lfg(inter):
 
-    embed = disnake.Embed(
-        title="PvE Group",
-        description="Choose your role",
-        color=0xff0000
+    view = LFGView()
+
+    await inter.send(
+        embed=view.build_embed(),
+        view=view
     )
 
-    await inter.send(embed=embed, view=LFGView())
 
-
-@bot.slash_command(description="Craft profit calculator")
+@bot.slash_command(description="Craft profit")
 async def craft(
     inter,
     item_price: int,
@@ -51,7 +49,7 @@ async def craft(
     )
 
     embed = disnake.Embed(
-        title="Craft Profit",
+        title="💰 Craft Profit",
         color=0x00ff9c
     )
 
@@ -61,7 +59,7 @@ async def craft(
     await inter.send(embed=embed)
 
 
-@bot.slash_command(description="Refine profit calculator")
+@bot.slash_command(description="Refine profit")
 async def refine(
     inter,
     output_price: int,
@@ -75,12 +73,12 @@ async def refine(
     profit = refine_profit(
         output_price,
         input_cost,
-        rra,
-        station_tax
+        station_tax,
+        rra
     )
 
     embed = disnake.Embed(
-        title="Refine Profit",
+        title="⚒ Refine Profit",
         color=0x00ffff
     )
 
