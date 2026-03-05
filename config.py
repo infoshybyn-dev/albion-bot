@@ -1,4 +1,4 @@
-TOKEN = "DISCORD_TOKEN"
+TOKEN = "YOUR_DISCORD_TOKEN"
 
 PREMIUM_TAX = 0.04
 NO_PREMIUM_TAX = 0.08
@@ -12,5 +12,3 @@ RRA = {
     "Thetford": 0.367,
     "Caerleon": 0.367
 }
-
-DEFAULT_STATION_TAX = 0.065
