@@ -25,8 +25,8 @@ class LFGModal(disnake.ui.Modal):
                 custom_id="location"
             ),
             disnake.ui.TextInput(
-                label="Ролі (через кому та кількість, напр. Танк:1,Хіл:2)", 
-                placeholder="Танк:1,Хіл:2",
+                label="Ролі (через кому)",
+                placeholder="Танк, Хіл, Порізка, Дд, Дд",
                 custom_id="roles"
             )
         ]
