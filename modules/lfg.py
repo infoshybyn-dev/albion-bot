@@ -36,16 +36,13 @@ class LeaveButton(disnake.ui.Button):
 
 class LFGView(disnake.ui.View):
     def __init__(self, location, organizer, roles_needed):
-        super().__init__()
+        super().__init__(timeout=3600)
 
-        # roles_needed приклад:
-        # {"Танк": 1, "Хіл": 1, "Порізка": 1, "Дд": 2}
         self.roles = {role: [] for role in roles_needed}
         self.limits = roles_needed
         self.location = location
         self.organizer = organizer
 
-        # Додаємо кнопки динамічно під унікальні ролі
         for role in self.roles.keys():
             self.add_item(RoleButton(role))
 
@@ -65,11 +62,7 @@ class LFGView(disnake.ui.View):
 
         for role, players in self.roles.items():
             limit = self.limits[role]
-
-            if players:
-                value = ", ".join(player.display_name for player in players)
-            else:
-                value = "Вільне місце"
+            value = ", ".join(player.display_name for player in players) if players else "Вільне місце"
 
             embed.add_field(
                 name=f"{role} [{len(players)}/{limit}]",
@@ -86,7 +79,6 @@ class LFGView(disnake.ui.View):
     async def register(self, inter: disnake.MessageInteraction, role: str):
         user = inter.user
 
-        # якщо користувач уже є в якійсь ролі — прибираємо
         old_role = None
         for r in self.roles:
             if user in self.roles[r]:
@@ -103,7 +95,6 @@ class LFGView(disnake.ui.View):
         if old_role:
             self.roles[old_role].remove(user)
 
-        # перевірка слота
         if len(self.roles[role]) >= self.limits[role]:
             await inter.response.send_message("❌ Слот зайнятий", ephemeral=True)
             return
