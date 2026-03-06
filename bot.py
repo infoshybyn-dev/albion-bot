@@ -36,14 +36,21 @@ class LFGModal(disnake.ui.Modal):
         location = self.text_values["location"]
         roles_raw = self.text_values["roles"]
 
-        # Конвертуємо у словник {"Танк":1, "Хіл":2}
-        roles_needed = {}
+               roles_needed = {}
         try:
-            for part in roles_raw.split(","):
-                role, count = part.split(":")
-                roles_needed[role.strip()] = int(count.strip())
+            parts = [part.strip() for part in roles_raw.split(",") if part.strip()]
+
+            if not parts:
+                raise ValueError("empty")
+
+            for role in parts:
+                roles_needed[role] = roles_needed.get(role, 0) + 1
+
         except Exception:
-            await inter.response.send_message("❌ Некоректний формат ролей", ephemeral=True)
+            await inter.response.send_message(
+                "❌ Некоректний формат ролей. Використовуй: Танк, Хіл, Порізка, Дд, Дд",
+                ephemeral=True
+            )
             return
 
         view = LFGView(location, inter.user, roles_needed)
