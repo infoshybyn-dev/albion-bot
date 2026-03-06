@@ -36,7 +36,7 @@ class LFGModal(disnake.ui.Modal):
         location = self.text_values["location"]
         roles_raw = self.text_values["roles"]
 
-               roles_needed = {}
+        roles_needed = {}
         try:
             parts = [part.strip() for part in roles_raw.split(",") if part.strip()]
 
