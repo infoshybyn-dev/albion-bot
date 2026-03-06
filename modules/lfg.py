@@ -36,7 +36,7 @@ class LeaveButton(disnake.ui.Button):
 
 class LFGView(disnake.ui.View):
     def __init__(self, location, organizer, roles_needed):
-        super().__init__(timeout=None)
+        super().__init__()
 
         # roles_needed приклад:
         # {"Танк": 1, "Хіл": 1, "Порізка": 1, "Дд": 2}
