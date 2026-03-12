@@ -21,8 +21,9 @@ class RoleButton(disnake.ui.Button):
 class LeaveButton(disnake.ui.Button):
     def __init__(self):
         super().__init__(
-            label="Покинути групу",
-            style=disnake.ButtonStyle.danger
+            label="❌ Покинути групу",
+            style=disnake.ButtonStyle.danger,
+            row=1
         )
 
     async def callback(self, inter: disnake.MessageInteraction):
@@ -35,44 +36,58 @@ class LeaveButton(disnake.ui.Button):
 
 
 class LFGView(disnake.ui.View):
-    def __init__(self, location, event_time, organizer, roles_needed):
+    def __init__(self, location, event_time, organizer, roles_needed, activity_name="Групік 8.2"):
         super().__init__(timeout=3600)
 
-        self.roles = {role: [] for role in roles_needed}
-        self.limits = roles_needed
         self.location = location
         self.event_time = event_time
         self.organizer = organizer
+        self.activity_name = activity_name
 
+        self.roles = {role: [] for role in roles_needed}
+        self.limits = roles_needed
+
+        row = 0
         for role in self.roles.keys():
-            self.add_item(RoleButton(role))
-
+            self.add_item(RoleButton(role_name=role))
         self.add_item(LeaveButton())
 
     def build_embed(self):
         embed = disnake.Embed(
-            title="Формування загону",
-            color=0x2B2D31
+            title="🛡️ ФОРМУВАННЯ ЗАГОНУ",
+            color=0x3498DB
         )
 
         embed.description = (
-            f"**ОРГ:** {self.organizer.mention}\n"
-            f"**ДЕ:** {self.location}\n"
-            f"**КОЛИ:** {self.event_time}\n"
-            f"────────────────────"
+            f"👑 **ОРГ:** {self.organizer.mention}  |  📍 **ДЕ:** {self.location}\n"
+            f"⚔️ **ЩО:** {self.activity_name}\n"
+            f"🕒 **ЧАС:** {self.event_time}\n"
+            f"────────────────────────"
         )
 
+        lines = []
         for role, players in self.roles.items():
             limit = self.limits[role]
-            value = ", ".join(
-                getattr(player, "display_name", player.name) for player in players
-            ) if players else "Вільне місце"
 
-            embed.add_field(
-                name=f"{role} [{len(players)}/{limit}]",
-                value=value,
-                inline=False
-            )
+            if players:
+                filled = len(players)
+                mentions = ", ".join(user.mention for user in players)
+                lines.append(f"**{role}:** {'🟢' * filled} {mentions}")
+            else:
+                lines.append(f"**{role}:** 🟢 *Вільне місце*")
+
+            if limit > 1 and players:
+                for _ in range(limit - len(players)):
+                    lines.append(f"**{role}:** 🟢 *Вільне місце*")
+            elif limit > 1 and not players:
+                for _ in range(limit - 1):
+                    lines.append(f"**{role}:** 🟢 *Вільне місце*")
+
+        embed.add_field(
+            name="Склад групи",
+            value="\n".join(lines),
+            inline=False
+        )
 
         total = sum(len(players) for players in self.roles.values())
         total_needed = sum(self.limits.values())
@@ -100,7 +115,7 @@ class LFGView(disnake.ui.View):
             self.roles[old_role].remove(user)
 
         if len(self.roles[role]) >= self.limits[role]:
-            await inter.response.send_message("❌ Слот зайнятий", ephemeral=True)
+            await inter.response.send_message("❌ У цій ролі вже немає місця", ephemeral=True)
             return
 
         self.roles[role].append(user)
@@ -144,5 +159,5 @@ class LFGView(disnake.ui.View):
                     mentions.append(user.mention)
 
             await inter.channel.send(
-                "⚔ **ГРУПА ГОТОВА!**\n" + " ".join(mentions)
+                f"✅ **Група зібрана!**\n{' '.join(mentions)}"
             )
