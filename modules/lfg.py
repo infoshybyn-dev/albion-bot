@@ -1,15 +1,15 @@
 import disnake
 
 
-ROLE_LABELS = {
-    "Танк": "🛡 Танк",
-    "Хіл": "💚 Хіл",
-    "Порізка": "🪓 Порізка",
-    "Дд": "⚔ Дд",
-    "ДД": "⚔ Дд",
-    "DD": "⚔ Дд",
-    "Tank": "🛡 Танк",
-    "Heal": "💚 Хіл",
+ROLE_INFO = {
+    "Танк": ("🛡", "Танк"),
+    "Хіл": ("💚", "Хіл"),
+    "Порізка": ("🪓", "Порізка"),
+    "Дд": ("⚔", "Дд"),
+    "ДД": ("⚔", "Дд"),
+    "DD": ("⚔", "Дд"),
+    "Tank": ("🛡", "Танк"),
+    "Heal": ("💚", "Хіл"),
 }
 
 
@@ -71,28 +71,52 @@ class LFGView(disnake.ui.View):
         )
 
         embed.description = (
-            f"👑 **Організатор:** {self.organizer.mention}"
+            f"👑 **Організатор:** {self.organizer.mention}\n"
             f"📍 **Місце збору:** {self.where}\n"
             f"⚔ **Контент:** {self.what}\n"
-            f"🕒 **ЧАС:** {self.event_time}\n"
+            f"🕒 **Час:** {self.event_time}\n"
             f"────────────────────────"
         )
 
-        lines = []
+        icon_col = []
+        role_col = []
+        status_col = []
+        player_col = []
+
         for role, players in self.roles.items():
-            pretty_role = ROLE_LABELS.get(role, role)
+            icon, role_name = ROLE_INFO.get(role, ("🔹", role))
             limit = self.limits[role]
 
             for i in range(limit):
+                icon_col.append(icon)
+                role_col.append(role_name)
+
                 if i < len(players):
-                    lines.append(f"**{pretty_role}:** {players[i].mention}")
+                    status_col.append("🟢")
+                    player_col.append(players[i].mention)
                 else:
-                    lines.append(f"**{pretty_role}:** 🟢 *Вільне місце*")
+                    status_col.append("🟢")
+                    player_col.append("*Вільне місце*")
 
         embed.add_field(
-            name="Склад групи",
-            value="\n".join(lines),
-            inline=False
+            name="Роль",
+            value="\n".join(icon_col) if icon_col else "—",
+            inline=True
+        )
+        embed.add_field(
+            name="Назва",
+            value="\n".join(role_col) if role_col else "—",
+            inline=True
+        )
+        embed.add_field(
+            name="Статус",
+            value="\n".join(status_col) if status_col else "—",
+            inline=True
+        )
+        embed.add_field(
+            name="Гравець",
+            value="\n".join(player_col) if player_col else "—",
+            inline=True
         )
 
         total = sum(len(players) for players in self.roles.values())
@@ -121,7 +145,10 @@ class LFGView(disnake.ui.View):
             self.roles[old_role].remove(user)
 
         if len(self.roles[role]) >= self.limits[role]:
-            await inter.response.send_message("❌ У цій ролі вже немає місця", ephemeral=True)
+            await inter.response.send_message(
+                "❌ У цій ролі вже немає місця",
+                ephemeral=True
+            )
             return
 
         self.roles[role].append(user)
