@@ -65,65 +65,52 @@ class LFGView(disnake.ui.View):
         self.add_item(LeaveButton())
 
     def build_embed(self):
-        embed = disnake.Embed(
-            title="🛡️ ФОРМУВАННЯ ГРУПИ",
-            color=0x3498DB
-        )
+    embed = disnake.Embed(
+        title="🛡️ ФОРМУВАННЯ ГРУПИ",
+        color=0x3498DB
+    )
 
-        embed.description = (
-            f"👑 **Організатор:** {self.organizer.mention}\n"
-            f"📍 **Місце збору:** {self.where}\n"
-            f"⚔ **Контент:** {self.what}\n"
-            f"🕒 **Час:** {self.event_time}\n"
-            f"────────────────────────"
-        )
+    embed.description = (
+        f"👑 **Організатор:** {self.organizer.mention}\n"
+        f"📍 **Місце збору:** {self.where}\n"
+        f"⚔ **Контент:** {self.what}\n"
+        f"🕒 **Час:** {self.event_time}\n"
+        f"────────────────────────"
+    )
 
-        icon_col = []
-        role_col = []
-        status_col = []
-        player_col = []
+    rows = []
+    for role, players in self.roles.items():
+        icon, role_name = ROLE_INFO.get(role, ("🔹", role))
+        limit = self.limits[role]
 
-        for role, players in self.roles.items():
-            icon, role_name = ROLE_INFO.get(role, ("🔹", role))
-            limit = self.limits[role]
+        for i in range(limit):
+            player_text = players[i].mention if i < len(players) else "*Вільне місце*"
+            rows.append((icon, role_name, "🟢", player_text))
 
-            for i in range(limit):
-                icon_col.append(icon)
-                role_col.append(role_name)
+    if not rows:
+        table_text = "Немає ролей"
+    else:
+        role_width = max(len(role_name) for _, role_name, _, _ in rows)
+        status_width = 2
 
-                if i < len(players):
-                    status_col.append("🟢")
-                    player_col.append(players[i].mention)
-                else:
-                    status_col.append("🟢")
-                    player_col.append("*Вільне місце*")
+        table_lines = []
+        for icon, role_name, status, player_text in rows:
+            line = f"{icon} {role_name:<{role_width}} {status} {player_text}"
+            table_lines.append(line)
 
-        embed.add_field(
-            name="Роль",
-            value="\n".join(icon_col) if icon_col else "—",
-            inline=True
-        )
-        embed.add_field(
-            name="Назва",
-            value="\n".join(role_col) if role_col else "—",
-            inline=True
-        )
-        embed.add_field(
-            name="Статус",
-            value="\n".join(status_col) if status_col else "—",
-            inline=True
-        )
-        embed.add_field(
-            name="Гравець",
-            value="\n".join(player_col) if player_col else "—",
-            inline=True
-        )
+        table_text = "\n".join(table_lines)
 
-        total = sum(len(players) for players in self.roles.values())
-        total_needed = sum(self.limits.values())
-        embed.set_footer(text=f"Зібрано {total}/{total_needed}")
+    embed.add_field(
+        name="Склад групи",
+        value=table_text,
+        inline=False
+    )
 
-        return embed
+    total = sum(len(players) for players in self.roles.values())
+    total_needed = sum(self.limits.values())
+    embed.set_footer(text=f"Зібрано {total}/{total_needed}")
+
+    return embed
 
     async def register(self, inter: disnake.MessageInteraction, role: str):
         user = inter.user
