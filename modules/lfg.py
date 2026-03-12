@@ -1,6 +1,18 @@
 import disnake
 
 
+ROLE_LABELS = {
+    "Танк": "🛡 Танк",
+    "Хіл": "💚 Хіл",
+    "Порізка": "🪓 Порізка",
+    "Дд": "⚔ Дд",
+    "ДД": "⚔ Дд",
+    "DD": "⚔ Дд",
+    "Tank": "🛡 Танк",
+    "Heal": "💚 Хіл",
+}
+
+
 class RoleButton(disnake.ui.Button):
     def __init__(self, role_name: str):
         self.role_name = role_name
@@ -36,20 +48,20 @@ class LeaveButton(disnake.ui.Button):
 
 
 class LFGView(disnake.ui.View):
-    def __init__(self, location, event_time, organizer, roles_needed, activity_name="Групік 8.2"):
+    def __init__(self, where, what, event_time, organizer, roles_needed):
         super().__init__(timeout=3600)
 
-        self.location = location
+        self.where = where
+        self.what = what
         self.event_time = event_time
         self.organizer = organizer
-        self.activity_name = activity_name
 
         self.roles = {role: [] for role in roles_needed}
         self.limits = roles_needed
 
-        row = 0
         for role in self.roles.keys():
-            self.add_item(RoleButton(role_name=role))
+            self.add_item(RoleButton(role))
+
         self.add_item(LeaveButton())
 
     def build_embed(self):
@@ -59,29 +71,22 @@ class LFGView(disnake.ui.View):
         )
 
         embed.description = (
-            f"👑 **ОРГ:** {self.organizer.mention}  |  📍 **ДЕ:** {self.location}\n"
-            f"⚔️ **ЩО:** {self.activity_name}\n"
+            f"👑 **ОРГ:** {self.organizer.mention} | 📍 **ДЕ:** {self.where}\n"
+            f"⚔ **ЩО:** {self.what}\n"
             f"🕒 **ЧАС:** {self.event_time}\n"
             f"────────────────────────"
         )
 
         lines = []
         for role, players in self.roles.items():
+            pretty_role = ROLE_LABELS.get(role, role)
             limit = self.limits[role]
 
-            if players:
-                filled = len(players)
-                mentions = ", ".join(user.mention for user in players)
-                lines.append(f"**{role}:** {'🟢' * filled} {mentions}")
-            else:
-                lines.append(f"**{role}:** 🟢 *Вільне місце*")
-
-            if limit > 1 and players:
-                for _ in range(limit - len(players)):
-                    lines.append(f"**{role}:** 🟢 *Вільне місце*")
-            elif limit > 1 and not players:
-                for _ in range(limit - 1):
-                    lines.append(f"**{role}:** 🟢 *Вільне місце*")
+            for i in range(limit):
+                if i < len(players):
+                    lines.append(f"**{pretty_role}:** {players[i].mention}")
+                else:
+                    lines.append(f"**{pretty_role}:** 🟢 *Вільне місце*")
 
         embed.add_field(
             name="Склад групи",
