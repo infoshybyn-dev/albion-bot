@@ -1,3 +1,4 @@
+import traceback
 import disnake
 from disnake.ext import commands
 from modules.lfg import LFGView
@@ -5,7 +6,12 @@ from modules.economy import craft_profit, refine_profit
 from config import DISCORD_TOKEN, RRA
 from database.db import init_db
 
-bot = commands.InteractionBot()
+intents = disnake.Intents.default()
+intents.guilds = True
+intents.members = True
+
+bot = commands.InteractionBot(intents=intents)
+
 
 @bot.event
 async def on_ready():
@@ -13,52 +19,86 @@ async def on_ready():
     print(f"Albion Bot готовий як {bot.user}")
 
 
-# -----------------------------
-# LFG – модальне вікно
-# -----------------------------
 class LFGModal(disnake.ui.Modal):
     def __init__(self):
         components = [
             disnake.ui.TextInput(
-                label="Локація", 
-                placeholder="Введіть місце",
-                custom_id="location"
+                label="Локація",
+                placeholder="Напр. Ava Road / Static / Group Dungeon",
+                custom_id="location",
+                max_length=100
+            ),
+            disnake.ui.TextInput(
+                label="Час проведення",
+                placeholder="Напр. 20:30 або сьогодні 21:00",
+                custom_id="event_time",
+                max_length=100
             ),
             disnake.ui.TextInput(
                 label="Ролі (через кому)",
-                placeholder="Танк, Хіл, Порізка, Дд, Дд",
-                custom_id="roles"
+                placeholder="Танк, Хіл, Дд, Дд",
+                custom_id="roles",
+                max_length=300
             )
         ]
-        super().__init__(title="Створити збір", components=components)
+
+        super().__init__(
+            title="Створити збір",
+            custom_id="lfg_modal",
+            components=components
+        )
 
     async def callback(self, inter: disnake.ModalInteraction):
-        location = self.text_values["location"]
-        roles_raw = self.text_values["roles"]
-
-        roles_needed = {}
         try:
+            location = self.text_values["location"].strip()
+            event_time = self.text_values["event_time"].strip()
+            roles_raw = self.text_values["roles"].strip()
+
+            if not location:
+                await inter.response.send_message("❌ Вкажи локацію", ephemeral=True)
+                return
+
+            if not event_time:
+                await inter.response.send_message("❌ Вкажи час проведення", ephemeral=True)
+                return
+
             parts = [part.strip() for part in roles_raw.split(",") if part.strip()]
-
             if not parts:
-                raise ValueError("empty")
+                await inter.response.send_message(
+                    "❌ Некоректний формат ролей. Використовуй: Танк, Хіл, Дд, Дд",
+                    ephemeral=True
+                )
+                return
 
+            roles_needed = {}
             for role in parts:
                 roles_needed[role] = roles_needed.get(role, 0) + 1
 
-        except Exception:
-            await inter.response.send_message(
-                "❌ Некоректний формат ролей. Використовуй: Танк, Хіл, Порізка, Дд, Дд",
-                ephemeral=True
+            view = LFGView(
+                location=location,
+                event_time=event_time,
+                organizer=inter.user,
+                roles_needed=roles_needed
             )
-            return
 
-        view = LFGView(location, inter.user, roles_needed)
-        await inter.response.send_message(embed=view.build_embed(), view=view)
+            await inter.response.send_message(
+                embed=view.build_embed(),
+                view=view
+            )
+
+        except Exception as e:
+            print("Помилка в LFGModal.callback:")
+            traceback.print_exc()
+
+            if not inter.response.is_done():
+                await inter.response.send_message(
+                    f"❌ Сталася помилка: {e}",
+                    ephemeral=True
+                )
 
 
 @bot.slash_command(description="Створити збір PvE")
-async def lfg(inter):
+async def lfg(inter: disnake.ApplicationCommandInteraction):
     await inter.response.send_modal(LFGModal())
 
 
