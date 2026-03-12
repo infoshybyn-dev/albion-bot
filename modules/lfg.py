@@ -35,12 +35,13 @@ class LeaveButton(disnake.ui.Button):
 
 
 class LFGView(disnake.ui.View):
-    def __init__(self, location, organizer, roles_needed):
+    def __init__(self, location, event_time, organizer, roles_needed):
         super().__init__(timeout=3600)
 
         self.roles = {role: [] for role in roles_needed}
         self.limits = roles_needed
         self.location = location
+        self.event_time = event_time
         self.organizer = organizer
 
         for role in self.roles.keys():
@@ -57,12 +58,15 @@ class LFGView(disnake.ui.View):
         embed.description = (
             f"**ОРГ:** {self.organizer.mention}\n"
             f"**ДЕ:** {self.location}\n"
+            f"**КОЛИ:** {self.event_time}\n"
             f"────────────────────"
         )
 
         for role, players in self.roles.items():
             limit = self.limits[role]
-            value = ", ".join(player.display_name for player in players) if players else "Вільне місце"
+            value = ", ".join(
+                getattr(player, "display_name", player.name) for player in players
+            ) if players else "Вільне місце"
 
             embed.add_field(
                 name=f"{role} [{len(players)}/{limit}]",
