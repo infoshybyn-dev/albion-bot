@@ -66,13 +66,14 @@ class LFGView(disnake.ui.View):
 
     def build_embed(self):
         embed = disnake.Embed(
-            title="🛡️ ФОРМУВАННЯ ЗАГОНУ",
+            title="🛡️ ФОРМУВАННЯ ГРУПИ",
             color=0x3498DB
         )
 
         embed.description = (
-            f"👑 **ОРГ:** {self.organizer.mention} | 📍 **ДЕ:** {self.where}\n"
-            f"⚔ **ЩО:** {self.what}\n"
+            f"👑 **Організатор:** {self.organizer.mention}"
+            f"📍 **Місце збору:** {self.where}\n"
+            f"⚔ **Контент:** {self.what}\n"
             f"🕒 **ЧАС:** {self.event_time}\n"
             f"────────────────────────"
         )
