@@ -110,7 +110,7 @@ class LFGView(disnake.ui.View):
         total_needed = sum(self.limits.values())
         embed.set_footer(text=f"Зібрано {total}/{total_needed}")
 
-    return embed
+        return embed
 
     async def register(self, inter: disnake.MessageInteraction, role: str):
         user = inter.user
