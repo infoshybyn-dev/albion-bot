@@ -50,9 +50,9 @@ class LFGModal(disnake.ui.Modal):
 
     async def callback(self, inter: disnake.ModalInteraction):
         try:
-            location = self.text_values["location"].strip()
-            event_time = self.text_values["event_time"].strip()
-            roles_raw = self.text_values["roles"].strip()
+            location = inter.text_values["location"].strip()
+            event_time = inter.text_values["event_time"].strip()
+            roles_raw = inter.text_values["roles"].strip()
 
             if not location:
                 await inter.response.send_message("❌ Вкажи локацію", ephemeral=True)
@@ -87,7 +87,7 @@ class LFGModal(disnake.ui.Modal):
             )
 
         except Exception as e:
-            print("Помилка в LFGModal.callback:")
+            import traceback
             traceback.print_exc()
 
             if not inter.response.is_done():
