@@ -23,9 +23,15 @@ class LFGModal(disnake.ui.Modal):
     def __init__(self):
         components = [
             disnake.ui.TextInput(
-                label="Локація",
-                placeholder="Напр. Ava Road / Static / Group Dungeon",
-                custom_id="location",
+                label="Де",
+                placeholder="Напр. Острів / Ava Road / Static",
+                custom_id="where",
+                max_length=100
+            ),
+            disnake.ui.TextInput(
+                label="Що",
+                placeholder="Напр. Групік 8.2 / Статика / Ava",
+                custom_id="what",
                 max_length=100
             ),
             disnake.ui.TextInput(
@@ -50,12 +56,17 @@ class LFGModal(disnake.ui.Modal):
 
     async def callback(self, inter: disnake.ModalInteraction):
         try:
-            location = inter.text_values["location"].strip()
+            where = inter.text_values["where"].strip()
+            what = inter.text_values["what"].strip()
             event_time = inter.text_values["event_time"].strip()
             roles_raw = inter.text_values["roles"].strip()
 
-            if not location:
-                await inter.response.send_message("❌ Вкажи локацію", ephemeral=True)
+            if not where:
+                await inter.response.send_message("❌ Вкажи, де буде збір", ephemeral=True)
+                return
+
+            if not what:
+                await inter.response.send_message("❌ Вкажи, який контент буде проводитись", ephemeral=True)
                 return
 
             if not event_time:
@@ -75,7 +86,8 @@ class LFGModal(disnake.ui.Modal):
                 roles_needed[role] = roles_needed.get(role, 0) + 1
 
             view = LFGView(
-                location=location,
+                where=where,
+                what=what,
                 event_time=event_time,
                 organizer=inter.user,
                 roles_needed=roles_needed
