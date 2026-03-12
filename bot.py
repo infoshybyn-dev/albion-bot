@@ -23,13 +23,13 @@ class LFGModal(disnake.ui.Modal):
     def __init__(self):
         components = [
             disnake.ui.TextInput(
-                label="Де",
-                placeholder="Напр. Острів / Ava Road / Static",
+                label="Місце збору",
+                placeholder="Напр. Острів / Люм / Бресік",
                 custom_id="where",
                 max_length=100
             ),
             disnake.ui.TextInput(
-                label="Що",
+                label="Тип контенту",
                 placeholder="Напр. Групік 8.2 / Статика / Ava",
                 custom_id="what",
                 max_length=100
